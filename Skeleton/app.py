@@ -68,6 +68,7 @@ Assign player2 their color
 '''
 
 
+
 @app.route('/p2Join', methods=['GET'])
 def p2Join():
     global game

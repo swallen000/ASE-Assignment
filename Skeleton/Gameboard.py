@@ -15,6 +15,7 @@ class Gameboard():
             return
         if self.player2 == "":
             return
+            
         self.board[row][col] = self.player1
         self.position[col] = self.position[col]-1
         self.current_turn = 'p2'
