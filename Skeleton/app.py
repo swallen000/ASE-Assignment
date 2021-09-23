@@ -76,8 +76,8 @@ def p2Join():
     elif game.player1 == 'yellow':
         game.player2 = 'red'
     else:
-        return render_template('p2Join.html', status = 'P1 didn\'t pick color first')
-        #return "P1 didn't pick color first", 400
+        #return render_template('p2Join.html', status = 'P1 didn\'t pick color first')
+        return "P1 didn't pick color first", 400
     return render_template('p2Join.html', status = game.player2)
 
 

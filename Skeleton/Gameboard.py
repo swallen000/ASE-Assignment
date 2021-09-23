@@ -13,6 +13,8 @@ class Gameboard():
     def move1(self, row, col):
         if self.game_result != "":
             return
+        if self.player2 == "":
+            return
         self.board[row][col] = self.player1
         self.position[col] = self.position[col]-1
         self.current_turn = 'p2'
@@ -74,6 +76,8 @@ class Gameboard():
     
     def move2(self, row, col):
         if self.game_result != "":
+            return
+        if self.player2 == "":
             return
         self.board[row][col] = self.player2
         self.position[col] = self.position[col]-1
