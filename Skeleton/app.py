@@ -1,12 +1,11 @@
-from flask import Flask, render_template, request, redirect, jsonify
-from json import dump
+from flask import Flask, render_template, request,  jsonify  # , redirect
+# from json import dump
 from Gameboard import Gameboard
-import db
-
+# import db
+import logging
 
 app = Flask(__name__)
 
-import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -24,7 +23,7 @@ Initial Webpage where gameboard is initialized
 def player1_connect():
     global game
     game = Gameboard()
-    return render_template('player1_connect.html', status = 'Pick a Color.')
+    return render_template('player1_connect.html', status='Pick a Color.')
 
 
 '''
@@ -53,9 +52,9 @@ Assign player1 their color
 def player1_config():
     global game
     game.player1 = request.args.get('color')
-    if game.player1 != 'red' and game.player1 != 'yellow' :
+    if game.player1 != 'red' and game.player1 != 'yellow':
         exit()
-    return render_template('player1_connect.html', status = game.player1)
+    return render_template('player1_connect.html', status=game.player1)
 
 
 '''
@@ -68,18 +67,16 @@ Assign player2 their color
 '''
 
 
-
 @app.route('/p2Join', methods=['GET'])
 def p2Join():
     global game
-    if game.player1 == 'red' :
+    if game.player1 == 'red':
         game.player2 = 'yellow'
     elif game.player1 == 'yellow':
         game.player2 = 'red'
     else:
-        #return render_template('p2Join.html', status = 'P1 didn\'t pick color first')
         return "P1 didn't pick color first", 400
-    return render_template('p2Join.html', status = game.player2)
+    return render_template('p2Join.html', status=game.player2)
 
 
 '''
@@ -99,13 +96,64 @@ def p1_move():
     global game
     col = int(request.json['column'][-1]) - 1
     row = game.position[col]
-    if game.current_turn != 'p1':
-        return jsonify(move=game.board, invalid = True, reason = 'Not your turn', winner = game.game_result)
-    elif row >= 0:
-        game.move1(row, col)
-        return jsonify(move=game.board, invalid=False, winner= game.game_result)
-    else:
-        return jsonify(move=game.board, invalid = True, reason = 'You tried to insert into a filled column', winner = game.game_result)
+
+    # checking all conditions
+    if game.player_not_yet_select_color():
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Players need to select color first',
+            winner=game.game_result
+        )
+
+    if game.game_draw():
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Draw',
+            winner=game.game_result
+        )
+
+    if game.invalid_turn('p1'):
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Not your turn',
+            winner=game.game_result
+        )
+
+    if game.game_over():
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason=f'Winner is {game.game_result}',
+            winner=game.game_result
+        )
+
+    if game.column_full(col):
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='You tried to insert into a filled column',
+            winner=game.game_result
+        )
+
+    if game.out_of_board(row, col):
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Out of board',
+            winner=game.game_result
+        )
+
+    # p1 starts to move
+    game.move1(row, col)
+    return jsonify(
+        move=game.board,
+        invalid=False,
+        winner=game.game_result
+    )
+
 
 '''
 Same as '/move1' but instead proccess Player 2
@@ -117,14 +165,62 @@ def p2_move():
     global game
     col = int(request.json['column'][-1]) - 1
     row = game.position[col]
-    if game.current_turn != 'p2':
-        return jsonify(move=game.board, invalid = True, reason = 'Not your turn', winner = game.game_result)
-    elif row >= 0:
-        game.move2(row, col)
-        return jsonify(move=game.board, invalid=False, winner= game.game_result)
-    else:
-        return jsonify(move=game.board, invalid = True, reason = 'You tried to insert into a filled column', winner = game.game_result)
 
+    # checking all conditions
+    if game.player_not_yet_select_color():
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Players need to select color first',
+            winner=game.game_result
+        )
+
+    if game.game_draw():
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Draw',
+            winner=game.game_result
+        )
+
+    if game.invalid_turn('p2'):
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Not your turn',
+            winner=game.game_result
+        )
+
+    if game.game_over():
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason=f'Winner is: {game.game_result}',
+            winner=game.game_result
+        )
+
+    if game.column_full(col):
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='You tried to insert into a filled column',
+            winner=game.game_result
+        )
+
+    if game.out_of_board(row, col):
+        return jsonify(
+            move=game.board,
+            invalid=True,
+            reason='Out of board',
+            winner=game.game_result
+        )
+    # p2 starts to move
+    game.move2(row, col)
+    return jsonify(
+        move=game.board,
+        invalid=False,
+        winner=game.game_result
+    )
 
 
 if __name__ == '__main__':
