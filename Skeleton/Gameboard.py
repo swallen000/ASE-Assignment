@@ -1,5 +1,3 @@
-# import db
-
 
 class Gameboard():
     def __init__(self):
