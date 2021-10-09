@@ -18,7 +18,6 @@ def init_db():
         print('Database Online, table created')
     except Error as e:
         print(e)
-        return "init error"
 
     finally:
         if conn:

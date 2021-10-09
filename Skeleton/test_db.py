@@ -12,13 +12,6 @@ class Test_DB(unittest.TestCase):
         self.assertEqual(None, data)
         db.clear()
 
-    def test_init_error(self):
-        db.clear()
-        db.init_db()
-        data = db.init_db()
-        self.assertEqual("init error", data)
-        db.clear()
-
     def test_add_move_error(self):
         db.clear()
         game = Gameboard()
@@ -55,6 +48,7 @@ class Test_DB(unittest.TestCase):
 
         game.current_turn = 'p2'
         game.remaining_moves = 41
+        game.board[5][1] = 'red'
         db.add_move(game)
         data = db.getMove()
         self.assertEqual(game.player1, data[3])
